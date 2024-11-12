@@ -9,6 +9,13 @@ import { ModalController } from '@ionic/angular';
 })
 export class MahasiswaPage implements OnInit {
   dataMahasiswa: any;
+  modalTambah: boolean = false;
+  modalEdit: boolean = false;
+  modalDeleteOpen: boolean = false;
+  selectedIdToDelete: any;
+  id: any;
+  nama: any;
+  jurusan: any;
 
   constructor(private api: ApiService, private modal: ModalController) { }
 
@@ -28,38 +35,29 @@ export class MahasiswaPage implements OnInit {
     });
   }
 
-  modalTambah: any;
-id: any;
-nama: any;
-jurusan: any;
+  resetModal() {
+    this.id = null;
+    this.nama = '';
+    this.jurusan = '';
+  }
 
-resetModal() {
-  this.id = null;
-  this.nama = '';
-  this.jurusan = '';
-}
+  openModalTambah(isOpen: boolean) {
+    this.modalTambah = isOpen;
+    this.resetModal();
+    this.modalEdit = false;
+  }
 
-openModalTambah(isOpen: boolean) {
-  this.modalTambah = isOpen;
-  this.resetModal();
-  this.modalTambah = true;
-  this.modalEdit = false;
-}
+  cancel() {
+    this.modal.dismiss();
+    this.modalTambah = false;
+    this.modalEdit = false;
+    this.resetModal();
+  }
 
-cancel() {
-  this.modal.dismiss();
-  this.modalTambah = false;
-  this.modalEdit = false;
-  this.resetModal();
-}
-tambahMahasiswa() {
-  if (this.nama != '' && this.jurusan != '') {
-    let data = {
-      nama: this.nama,
-      jurusan: this.jurusan,
-    }
-    this.api.tambah(data, 'tambah.php')
-      .subscribe({
+  tambahMahasiswa() {
+    if (this.nama && this.jurusan) {
+      const data = { nama: this.nama, jurusan: this.jurusan };
+      this.api.tambah(data, 'tambah.php').subscribe({
         next: (hasil: any) => {
           this.resetModal();
           console.log('berhasil tambah mahasiswa');
@@ -70,15 +68,30 @@ tambahMahasiswa() {
         error: (err: any) => {
           console.log('gagal tambah mahasiswa');
         }
-      })
-  } else {
-    console.log('gagal tambah mahasiswa karena masih ada data yg kosong');
+      });
+    } else {
+      console.log('gagal tambah mahasiswa karena masih ada data yg kosong');
+    }
   }
-}
 
-hapusMahasiswa(id: any) {
-  this.api.hapus(id,
-    'hapus.php?id=').subscribe({
+  confirmDelete(id: any) {
+    this.modalDeleteOpen = true;
+    this.selectedIdToDelete = id;
+  }
+
+  cancelDelete() {
+    this.modalDeleteOpen = false;
+    this.selectedIdToDelete = null;
+  }
+
+  proceedToDelete() {
+    this.hapusMahasiswa(this.selectedIdToDelete);
+    this.modalDeleteOpen = false;
+    this.selectedIdToDelete = null;
+  }
+
+  hapusMahasiswa(id: any) {
+    this.api.hapus(id, 'hapus.php?id=').subscribe({
       next: (res: any) => {
         console.log('sukses', res);
         this.getMahasiswa();
@@ -87,15 +100,14 @@ hapusMahasiswa(id: any) {
       error: (error: any) => {
         console.log('gagal');
       }
-    })
-}
+    });
+  }
 
-ambilMahasiswa(id: any) {
-  this.api.lihat(id,
-    'lihat.php?id=').subscribe({
+  ambilMahasiswa(id: any) {
+    this.api.lihat(id, 'lihat.php?id=').subscribe({
       next: (hasil: any) => {
         console.log('sukses', hasil);
-        let mahasiswa = hasil;
+        const mahasiswa = hasil;
         this.id = mahasiswa.id;
         this.nama = mahasiswa.nama;
         this.jurusan = mahasiswa.jurusan;
@@ -103,29 +115,19 @@ ambilMahasiswa(id: any) {
       error: (error: any) => {
         console.log('gagal ambil data');
       }
-    })
-}
-
-modalEdit: any;
-
-openModalEdit(isOpen: boolean, idget: any) {
-  this.modalEdit = isOpen;
-  this.id = idget;
-  console.log(this.id);
-  this.ambilMahasiswa(this.id);
-  this.modalTambah = false;
-  this.modalEdit = true;
-}
-
-
-editMahasiswa() {
-  let data = {
-    id: this.id,
-    nama: this.nama,
-    jurusan: this.jurusan
+    });
   }
-  this.api.edit(data, 'edit.php')
-    .subscribe({
+
+  openModalEdit(isOpen: boolean, idget: any) {
+    this.modalEdit = isOpen;
+    this.id = idget;
+    this.ambilMahasiswa(this.id);
+    this.modalTambah = false;
+  }
+
+  editMahasiswa() {
+    const data = { id: this.id, nama: this.nama, jurusan: this.jurusan };
+    this.api.edit(data, 'edit.php').subscribe({
       next: (hasil: any) => {
         console.log(hasil);
         this.resetModal();
@@ -137,6 +139,6 @@ editMahasiswa() {
       error: (err: any) => {
         console.log('gagal edit Mahasiswa');
       }
-    })
-}
+    });
+  }
 }

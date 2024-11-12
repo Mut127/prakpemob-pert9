@@ -1,0 +1,14 @@
+.small-modal {
+    --width: 400px;
+    --height: 250px;
+    --border-radius: 8px;
+    --ion-background-color: #ffffff;
+  }
+  
+  .small-modal .ion-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  
